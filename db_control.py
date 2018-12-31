@@ -1,8 +1,15 @@
+#!/usr/bin/python -u
+# -*- coding: utf-8 -*-
+
+# v 0.0.1
+
 import sqlite3 as sql
 import datetime
+import time
 
 t = 0
 while 1:
+    time.sleep(10)
     if abs(int(datetime.datetime.now().strftime("%M")) - t) > 0:
         with sql.connect("messages.db") as con:
             try:
