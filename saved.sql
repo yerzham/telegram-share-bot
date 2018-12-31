@@ -1,6 +1,7 @@
 CREATE TABLE users(
     user_id VARCHAR PRIMARY KEY,
-    user_name VARCHAR
+    user_name VARCHAR,
+    last_active TIME
 );
 
 CREATE TABLE messages(
