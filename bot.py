@@ -133,55 +133,67 @@ def individualreq(bot, update, args):
     if id == 'share':
         with sql.connect("messages.db") as con:
             try:
-                query = "SELECT message_id, from_user, text_sent FROM messages"
+                query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(update.message.from_user.id) + ";"
                 print("EXECUTED QUERY:")
                 print(query)
 
                 cur = con.cursor()
                 cur.execute(query)
                 res = cur.fetchall()
+                
 
-                found = False
-
-                while (not found) and (len(res)!=0):
-                    i = random.randint(0,len(res)-1)
-
-                    query = "SELECT message_id, user_id FROM history WHERE message_id = " + str(res[i][0]) + " AND user_id = '" + str(res[i][1]) + "';"
-                    print("EXECUTED QUERY:")  
-                    print(query)
-
-                    cur.execute(query)
-                    res2 = cur.fetchall()
-
-                    if (len(res2) == 0):
-                        found = True
-                    else:
-                        res.pop(i)
-                if len(res)!=0:
-                    query = "SELECT user_name FROM users WHERE users.user_id = '" + str(res[i][1]) + "';"
-                    print("EXECUTED QUERY:")  
-                    print(query)
-
-                    cur.execute(query)
-                    res2 = cur.fetchone()
-
-                    query = "INSERT INTO history (user_id, message_id) VALUES('" + str(update.message.from_user.id) + "', " 
-                    query += str(res[i][0]) + ");"
-                    print("EXECUTED QUERY:")  
-                    print(query)
-
-                    cur.execute(query)
-
-                    response = str(res2[0]) + ": " + res[i][2]
+                if len(res) == 0:
+                    bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start')
                 else:
-                    response = "Простите, вы уже все посмотрели. Можете теперь сами мне написать, мы прочитаем!"
-                    
-                bot.send_message(chat_id=update.message.chat_id, text=response)
+                    query = "SELECT message_id, from_user, text_sent FROM messages"
+                    print("EXECUTED QUERY:")
+                    print(query)
+
+                    cur = con.cursor()
+                    cur.execute(query)
+                    res = cur.fetchall()
+
+                    found = False
+
+                    while (not found) and (len(res)!=0):
+                        i = random.randint(0,len(res)-1)
+
+                        query = "SELECT message_id, user_id FROM history WHERE message_id = " + str(res[i][0]) + " AND user_id = '" + str(res[i][1]) + "';"
+                        print("EXECUTED QUERY:")  
+                        print(query)
+
+                        cur.execute(query)
+                        res2 = cur.fetchall()
+
+                        if (len(res2) == 0):
+                            found = True
+                        else:
+                            res.pop(i)
+                    if len(res)!=0:
+                        query = "SELECT user_name FROM users WHERE users.user_id = '" + str(res[i][1]) + "';"
+                        print("EXECUTED QUERY:")  
+                        print(query)
+
+                        cur.execute(query)
+                        res2 = cur.fetchone()
+
+                        query = "INSERT INTO history (user_id, message_id) VALUES('" + str(update.message.from_user.id) + "', " 
+                        query += str(res[i][0]) + ");"
+                        print("EXECUTED QUERY:")  
+                        print(query)
+
+                        cur.execute(query)
+
+                        response = str(res2[0]) + ": " + res[i][2]
+                    else:
+                        response = "Простите, вы уже все посмотрели. Можете теперь сами мне написать, мы прочитаем!"
+                        
+                    bot.send_message(chat_id=update.message.chat_id, text=response)
                 con.commit()
             except sql.Error as e:   
                 print("Error %s:" % e.args[0])
     elif id == 'help':
-        response = 'Очень рад что вы заинтересованы. Я бот, который на 24 часа сахраняет все отправленные мне сообщения в базе данных'
+        response = 'Очень рад что вы заинтересованы. Я бот, который на 24 часа сохраняет все отправленные мне сообщения в базе данных'
         bot.send_message(chat_id=update.message.chat_id, text=response)
         response = 'Если мой собеседник присылает мне команду /share, я отвечаю ему случайно выбранным сообщением, которое хранится в той базе данных'
         bot.send_message(chat_id=update.message.chat_id, text=response)
