@@ -6,7 +6,7 @@ import datetime
 import sys
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-token = raw_input("Please enter token: ")
+token = str(sys.argv[1])
 
 updater = Updater(token=token) 
 dispatcher = updater.dispatcher
