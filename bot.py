@@ -62,16 +62,18 @@ def textMessage(bot, update):
             cur = con.cursor()
             cur.execute(query)
             res = cur.fetchone()
-            print(res[1][3:5], ":", datetime.datetime.now().strftime("%M"))
-
-            query = "UPDATE users SET last_active = '" + datetime.datetime.now().strftime("%H:%M:%S") + "' WHERE user_id = " + str(update.message.from_user.id) + ";"
-            print("EXECUTED QUERY:")
-            print(query)
-            cur.execute(query)
+            
 
             if len(res) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Сначало зарегистрируйтесь в моей системе, просто введите /start')
             elif abs(int(res[1][3:5]) - int(datetime.datetime.now().strftime("%M"))) > 0:
+                print(res[1][3:5], ":", datetime.datetime.now().strftime("%M"))
+
+                query = "UPDATE users SET last_active = '" + datetime.datetime.now().strftime("%H:%M:%S") + "' WHERE user_id = " + str(update.message.from_user.id) + ";"
+                print("EXECUTED QUERY:")
+                print(query)
+                cur.execute(query)
+                
                 allow = True
             else:
                 bot.send_message(chat_id=update.message.chat_id, text='Простите, я не успеваю обработать..')
