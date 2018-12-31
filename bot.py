@@ -76,7 +76,7 @@ def textMessage(bot, update):
 
                 allow = True
             else:
-                bot.send_message(chat_id=update.message.chat_id, text='Простите, я не успеваю обработать..')
+                bot.send_message(chat_id=update.message.chat_id, text='Простите, я не успеваю обработать.. Подождите минуту')
 
 
             con.commit()
@@ -181,7 +181,7 @@ def individualreq(bot, update, args):
             except sql.Error as e:   
                 print("Error %s:" % e.args[0])
     elif id == 'help':
-        response = 'Очень рад что вы заинтересованы. Я бот, который сахраняет все отправленные мне сообщения в базу данных и храню их там один день'
+        response = 'Очень рад что вы заинтересованы. Я бот, который на 24 часа сахраняет все отправленные мне сообщения в базе данных'
         bot.send_message(chat_id=update.message.chat_id, text=response)
         response = 'Если мой собеседник присылает мне команду /share, я отвечаю ему случайно выбранным сообщением, которое хранится в той базе данных'
         bot.send_message(chat_id=update.message.chat_id, text=response)
