@@ -52,7 +52,7 @@ def startCommand(bot, update):
 
 def textMessage(bot, update):
     try:
-        message =  update.message.from_user.first_name + ': ' + update.message.text
+        message =  update.message.from_user.first_name + ': ' + str(update.message.text.encode("utf8"))
         print(message)
 
         allow = False
