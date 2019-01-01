@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 
-# v 0.0.1
+# v 0.0.2
 
 import random
 import sqlite3 as sql
@@ -18,10 +18,10 @@ messages = []
 
 def startCommand(bot, update):
     try:
-        message =  update.message.from_user.first_name + ': ' + update.message.text
+        message =  str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ': ' + str(update.message.text.encode("utf-8").decode("utf-8"))
         print(message)
 
-        response = 'Привет, ' + update.message.from_user.first_name + '. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
+        response = 'Привет, ' + str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + '. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
         bot.send_message(chat_id=update.message.chat_id, text=response)
         bot.send_message(chat_id=update.message.chat_id, text='Вы можете поделиться новостями или интересными идеями. Я и мои собеседники будут рады от вас это услышать!')
         bot.send_message(chat_id=update.message.chat_id, text='Но не вводите личную информацию...')
@@ -40,7 +40,7 @@ def startCommand(bot, update):
                     query = "INSERT INTO users (user_id, user_name, last_active) VALUES('" 
                     query += str(update.message.from_user.id) 
                     query += "', '" 
-                    query += update.message.from_user.first_name 
+                    query += str(update.message.from_user.first_name.encode("utf-8").decode("utf-8"))
                     query += "', '" + datetime.datetime.now().strftime("%H:%M:%S") + "');"
                     print("EXECUTED QUERY:")
                     print(query)
@@ -48,11 +48,11 @@ def startCommand(bot, update):
                     cur.execute(query)
                 con.commit()
     except Exception as e:   
-        print("Error %s:" % e.args[0])
+        print(e)
 
 def textMessage(bot, update):
     try:
-        message =  update.message.from_user.first_name + ': ' + str(update.message.text.encode("utf8"))
+        message =  str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ': ' + str(update.message.text.encode("utf-8").decode("utf-8"))
         print(message)
 
         allow = False
@@ -82,7 +82,7 @@ def textMessage(bot, update):
             con.commit()
 
         if allow:
-            response = update.message.from_user.first_name + ', я получил Ваше сообщение: "' + update.message.text + '". Спасибо за то что поделились этим!'
+            response = str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ', я получил Ваше сообщение: "' + str(update.message.text.encode("utf-8").decode("utf-8")) + '". Спасибо за то что поделились этим!'
             bot.send_message(chat_id=update.message.chat_id, text=response)
             bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.')
             
@@ -93,7 +93,7 @@ def textMessage(bot, update):
             query += "', '" 
             query += datetime.datetime.now().strftime("%H:%M:%S") 
             query += "', '" 
-            query += update.message.text + "');"
+            query += str(update.message.text.encode("utf-8").decode("utf-8")) + "');"
             print("EXECUTED QUERY:")
             print(query)
 
@@ -102,7 +102,7 @@ def textMessage(bot, update):
                 cur = con.cursor()
                 cur.execute(query)
 
-                query = "SELECT message_id FROM messages WHERE messages.text_sent = '" + update.message.text 
+                query = "SELECT message_id FROM messages WHERE messages.text_sent = '" + str(update.message.text.encode("utf-8").decode("utf-8"))
                 query += "' AND messages.from_user = '" + str(update.message.from_user.id) + "';"
                 print("EXECUTED QUERY:")
                 print(query)
@@ -119,12 +119,12 @@ def textMessage(bot, update):
 
                 con.commit()
     except Exception as e:   
-        print("Error %s:" % e.args[0])
+        print(e)
 
 def individualreq(bot, update, args):
     try:
         id = update.message.text
-        message =  update.message.from_user.first_name + ': ' + update.message.text
+        message = str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ': ' + update.message.text
         print(message)
 
         id = id[1:]
@@ -196,7 +196,7 @@ def individualreq(bot, update, args):
             response = 'Пишите мне то, что хотите донести случайным людям. Я сделаю это за вас. Удачи!'
             bot.send_message(chat_id=update.message.chat_id, text=response)
     except Exception as e:   
-                print("Error %s:" % e.args[0])
+        print(e)
 
 
 start_command_handler = CommandHandler('start', startCommand)

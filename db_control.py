@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 
-# v 0.0.1
+# v 0.0.2
 
 import sqlite3 as sql
 import datetime
@@ -29,6 +29,6 @@ while 1:
                             cur.execute(query)
                     
             except sql.Error as e:   
-                        print("Error %s:" % e.args[0])
+                print(e)
         t = int(datetime.datetime.now().strftime("%M"))
     
