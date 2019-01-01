@@ -1,6 +1,8 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 
+# v 0.0.1
+
 import random
 import sqlite3 as sql
 import datetime
@@ -15,22 +17,22 @@ dispatcher = updater.dispatcher
 messages = []
 
 def startCommand(bot, update):
-    message =  update.message.from_user.first_name + ': ' + update.message.text
-    print(message)
+    try:
+        message =  update.message.from_user.first_name + ': ' + update.message.text
+        print(message)
 
-    response = 'Привет, ' + update.message.from_user.first_name + '. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
-    bot.send_message(chat_id=update.message.chat_id, text=response)
-    bot.send_message(chat_id=update.message.chat_id, text='Вы можете поделиться новостями или интересными идеями. Я и мои собеседники будут рады от вас это услышать!')
-    bot.send_message(chat_id=update.message.chat_id, text='Но не вводите личную информацию...')
-    bot.send_message(chat_id=update.message.chat_id, text='Для помощи, введите /help')
+        response = 'Привет, ' + update.message.from_user.first_name + '. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
+        bot.send_message(chat_id=update.message.chat_id, text=response)
+        bot.send_message(chat_id=update.message.chat_id, text='Вы можете поделиться новостями или интересными идеями. Я и мои собеседники будут рады от вас это услышать!')
+        bot.send_message(chat_id=update.message.chat_id, text='Но не вводите личную информацию...')
+        bot.send_message(chat_id=update.message.chat_id, text='Для помощи, введите /help')
 
-    if not update.message.from_user.is_bot:
-        query = "SELECT user_id FROM users WHERE user_id = '" + str(update.message.from_user.id) + "';"
-        print("EXECUTED QUERY:")
-        print(query)
-        
-        with sql.connect("messages.db") as con:
-            try:
+        if not update.message.from_user.is_bot:
+            query = "SELECT user_id FROM users WHERE user_id = '" + str(update.message.from_user.id) + "';"
+            print("EXECUTED QUERY:")
+            print(query)
+            
+            with sql.connect("messages.db") as con:
                 cur = con.cursor()
                 cur.execute(query)
                 res = cur.fetchall()
@@ -45,17 +47,17 @@ def startCommand(bot, update):
 
                     cur.execute(query)
                 con.commit()
-            except sql.Error as e:   
-                print("Error %s:" % e.args[0])
+    except Exception as e:   
+        print("Error %s:" % e.args[0])
 
 def textMessage(bot, update):
-    message =  update.message.from_user.first_name + ': ' + update.message.text
-    print(message)
+    try:
+        message =  update.message.from_user.first_name + ': ' + update.message.text
+        print(message)
 
-    allow = False
+        allow = False
 
-    with sql.connect("messages.db") as con:
-        try:
+        with sql.connect("messages.db") as con:
             query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(update.message.from_user.id) + ";"
             print("EXECUTED QUERY:")
             print(query)
@@ -63,7 +65,6 @@ def textMessage(bot, update):
             cur = con.cursor()
             cur.execute(query)
             res = cur.fetchall()
-            
 
             if len(res) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start')
@@ -78,31 +79,26 @@ def textMessage(bot, update):
                 allow = True
             else:
                 bot.send_message(chat_id=update.message.chat_id, text='Простите, я не успеваю обработать.. Подождите минуту')
-
-
             con.commit()
-        except sql.Error as e:   
-            print("Error %s:" % e.args[0])
 
-    if allow:
-        response = update.message.from_user.first_name + ', я получил Ваше сообщение: "' + update.message.text + '". Спасибо за то что поделились этим!'
-        bot.send_message(chat_id=update.message.chat_id, text=response)
-        bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.')
-        
-        query = "INSERT INTO messages (from_user, date_sent, time_sent, text_sent) VALUES('" 
-        query += str(update.message.from_user.id) 
-        query += "', '" 
-        query += datetime.datetime.now().strftime("%Y-%m-%d")
-        query += "', '" 
-        query += datetime.datetime.now().strftime("%H:%M:%S") 
-        query += "', '" 
-        query += update.message.text + "');"
-        print("EXECUTED QUERY:")
-        print(query)
-
+        if allow:
+            response = update.message.from_user.first_name + ', я получил Ваше сообщение: "' + update.message.text + '". Спасибо за то что поделились этим!'
+            bot.send_message(chat_id=update.message.chat_id, text=response)
+            bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.')
             
-        with sql.connect("messages.db") as con:
-            try:
+            query = "INSERT INTO messages (from_user, date_sent, time_sent, text_sent) VALUES('" 
+            query += str(update.message.from_user.id) 
+            query += "', '" 
+            query += datetime.datetime.now().strftime("%Y-%m-%d")
+            query += "', '" 
+            query += datetime.datetime.now().strftime("%H:%M:%S") 
+            query += "', '" 
+            query += update.message.text + "');"
+            print("EXECUTED QUERY:")
+            print(query)
+
+                
+            with sql.connect("messages.db") as con:
                 cur = con.cursor()
                 cur.execute(query)
 
@@ -122,18 +118,18 @@ def textMessage(bot, update):
                 cur.execute(query)
 
                 con.commit()
-            except sql.Error as e:   
-                print("Error %s:" % e.args[0])
+    except Exception as e:   
+        print("Error %s:" % e.args[0])
 
 def individualreq(bot, update, args):
-    id = update.message.text
-    message =  update.message.from_user.first_name + ': ' + update.message.text
-    print(message)
+    try:
+        id = update.message.text
+        message =  update.message.from_user.first_name + ': ' + update.message.text
+        print(message)
 
-    id = id[1:]
-    if id == 'share':
-        with sql.connect("messages.db") as con:
-            try:
+        id = id[1:]
+        if id == 'share':
+            with sql.connect("messages.db") as con:
                 query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(update.message.from_user.id) + ";"
                 print("EXECUTED QUERY:")
                 print(query)
@@ -191,15 +187,16 @@ def individualreq(bot, update, args):
                         
                     bot.send_message(chat_id=update.message.chat_id, text=response)
                 con.commit()
-            except sql.Error as e:   
+                
+        elif id == 'help':
+            response = 'Очень рад что вы заинтересованы. Я бот, который на 24 часа сохраняет все отправленные мне сообщения в базе данных'
+            bot.send_message(chat_id=update.message.chat_id, text=response)
+            response = 'Если мой собеседник присылает мне команду /share, я отвечаю ему случайно выбранным сообщением, которое хранится в той базе данных'
+            bot.send_message(chat_id=update.message.chat_id, text=response)
+            response = 'Пишите мне то, что хотите донести случайным людям. Я сделаю это за вас. Удачи!'
+            bot.send_message(chat_id=update.message.chat_id, text=response)
+    except Exception as e:   
                 print("Error %s:" % e.args[0])
-    elif id == 'help':
-        response = 'Очень рад что вы заинтересованы. Я бот, который на 24 часа сохраняет все отправленные мне сообщения в базе данных'
-        bot.send_message(chat_id=update.message.chat_id, text=response)
-        response = 'Если мой собеседник присылает мне команду /share, я отвечаю ему случайно выбранным сообщением, которое хранится в той базе данных'
-        bot.send_message(chat_id=update.message.chat_id, text=response)
-        response = 'Пишите мне то, что хотите донести случайным людям. Я сделаю это за вас. Удачи!'
-        bot.send_message(chat_id=update.message.chat_id, text=response)
 
 
 start_command_handler = CommandHandler('start', startCommand)
