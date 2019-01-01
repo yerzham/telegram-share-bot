@@ -32,11 +32,11 @@ def startCommand(bot, update):
                 cur.execute(query)
                 res = cur.fetchall()
                 if len(res) == 0:
-                    query = "INSERT INTO users (user_id, user_name, last_active) VALUES('" 
-                    query += str(update.message.from_user.id) 
-                    query += "', '" 
-                    query += update.message.from_user.first_name 
-                    query += "', '" + datetime.datetime.now().strftime("%H:%M:%S") + "');"
+                    query = u"INSERT INTO users (user_id, user_name, last_active) VALUES('" 
+                    query += str(update.message.from_user.id)
+                    query += u"', '" 
+                    query += update.message.from_user.first_name
+                    query += u"', '" + datetime.datetime.now().strftime("%H:%M:%S") + "');"
 
                     cur.execute(query)
                 con.commit()
@@ -121,18 +121,21 @@ def individualreq(bot, update, args):
                     cur = con.cursor()
                     cur.execute(query)
                     res = cur.fetchall()
+                    print(res)
 
                     found = False
 
                     while (not found) and (len(res)!=0):
                         i = random.randint(0,len(res)-1)
+                        print(str(res[i][0]), str(res[i][1]))
 
-                        query = "SELECT message_id, user_id FROM history WHERE message_id = " + str(res[i][0]) + " AND user_id = '" + str(res[i][1]) + "';"
+                        query = "SELECT message_id, user_id FROM history WHERE message_id = " + str(res[i][0]) + " AND user_id = '" + str(update.message.from_user.id)  + "';"
 
                         cur.execute(query)
                         res2 = cur.fetchall()
+                        print(res2)
 
-                        if (len(res2) == 0):
+                        if len(res2) == 0:
                             found = True
                         else:
                             res.pop(i)
@@ -147,7 +150,7 @@ def individualreq(bot, update, args):
 
                         cur.execute(query)
 
-                        response = str(res2[0]) + u": " + res[i][2]
+                        response = u"" + res2[0] + u": " + res[i][2]
                     else:
                         response = "Простите, вы уже все посмотрели. Можете теперь сами мне написать, мы прочитаем!"
                         
