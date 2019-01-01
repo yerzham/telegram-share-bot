@@ -18,7 +18,7 @@ messages = []
 
 def startCommand(bot, update):
     try:
-        response = 'Привет, ' + update.message.from_user.first_name + '. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
+        response = u'Привет, ' + update.message.from_user.first_name + u'. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
         bot.send_message(chat_id=update.message.chat_id, text=response)
         bot.send_message(chat_id=update.message.chat_id, text='Вы можете поделиться новостями или интересными идеями. Я и мои собеседники будут рады от вас это услышать!')
         bot.send_message(chat_id=update.message.chat_id, text='Но не вводите личную информацию...')
