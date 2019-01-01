@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 
-# v 0.0.2
+# v 0.0.1
 
 import random
 import sqlite3 as sql
@@ -18,10 +18,7 @@ messages = []
 
 def startCommand(bot, update):
     try:
-        message =  str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ': ' + str(update.message.text.encode("utf-8").decode("utf-8"))
-        print(message)
-
-        response = 'Привет, ' + str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + '. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
+        response = 'Привет, ' + update.message.from_user.first_name + '. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
         bot.send_message(chat_id=update.message.chat_id, text=response)
         bot.send_message(chat_id=update.message.chat_id, text='Вы можете поделиться новостями или интересными идеями. Я и мои собеседники будут рады от вас это услышать!')
         bot.send_message(chat_id=update.message.chat_id, text='Но не вводите личную информацию...')
@@ -29,8 +26,6 @@ def startCommand(bot, update):
 
         if not update.message.from_user.is_bot:
             query = "SELECT user_id FROM users WHERE user_id = '" + str(update.message.from_user.id) + "';"
-            print("EXECUTED QUERY:")
-            print(query)
             
             with sql.connect("messages.db") as con:
                 cur = con.cursor()
@@ -40,10 +35,8 @@ def startCommand(bot, update):
                     query = "INSERT INTO users (user_id, user_name, last_active) VALUES('" 
                     query += str(update.message.from_user.id) 
                     query += "', '" 
-                    query += str(update.message.from_user.first_name.encode("utf-8").decode("utf-8"))
+                    query += update.message.from_user.first_name 
                     query += "', '" + datetime.datetime.now().strftime("%H:%M:%S") + "');"
-                    print("EXECUTED QUERY:")
-                    print(query)
 
                     cur.execute(query)
                 con.commit()
@@ -52,15 +45,10 @@ def startCommand(bot, update):
 
 def textMessage(bot, update):
     try:
-        message =  str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ': ' + str(update.message.text.encode("utf-8").decode("utf-8"))
-        print(message)
-
         allow = False
 
         with sql.connect("messages.db") as con:
             query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(update.message.from_user.id) + ";"
-            print("EXECUTED QUERY:")
-            print(query)
 
             cur = con.cursor()
             cur.execute(query)
@@ -69,11 +57,7 @@ def textMessage(bot, update):
             if len(res) == 0:
                 bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start')
             elif abs(int(res[0][1][3:5]) - int(datetime.datetime.now().strftime("%M"))) > 0:
-                print(res[0][1][3:5], ":", datetime.datetime.now().strftime("%M"))
-
                 query = "UPDATE users SET last_active = '" + datetime.datetime.now().strftime("%H:%M:%S") + "' WHERE user_id = " + str(update.message.from_user.id) + ";"
-                print("EXECUTED QUERY:")
-                print(query)
                 cur.execute(query)
 
                 allow = True
@@ -82,7 +66,7 @@ def textMessage(bot, update):
             con.commit()
 
         if allow:
-            response = str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ', я получил Ваше сообщение: "' + str(update.message.text.encode("utf-8").decode("utf-8")) + '". Спасибо за то что поделились этим!'
+            response = update.message.from_user.first_name + ', я получил Ваше сообщение: "' + update.message.text + '". Спасибо за то что поделились этим!'
             bot.send_message(chat_id=update.message.chat_id, text=response)
             bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.')
             
@@ -93,27 +77,21 @@ def textMessage(bot, update):
             query += "', '" 
             query += datetime.datetime.now().strftime("%H:%M:%S") 
             query += "', '" 
-            query += str(update.message.text.encode("utf-8").decode("utf-8")) + "');"
-            print("EXECUTED QUERY:")
-            print(query)
+            query += update.message.text + "');"
 
                 
             with sql.connect("messages.db") as con:
                 cur = con.cursor()
                 cur.execute(query)
 
-                query = "SELECT message_id FROM messages WHERE messages.text_sent = '" + str(update.message.text.encode("utf-8").decode("utf-8"))
+                query = "SELECT message_id FROM messages WHERE messages.text_sent = '" + update.message.text 
                 query += "' AND messages.from_user = '" + str(update.message.from_user.id) + "';"
-                print("EXECUTED QUERY:")
-                print(query)
 
                 cur.execute(query)
                 res = cur.fetchone()
 
                 query = "INSERT INTO history (user_id, message_id) VALUES('" + str(update.message.from_user.id) + "', " 
                 query += str(res[0]) + ");"
-                print("EXECUTED QUERY:")  
-                print(query)
 
                 cur.execute(query)
 
@@ -124,15 +102,11 @@ def textMessage(bot, update):
 def individualreq(bot, update, args):
     try:
         id = update.message.text
-        message = str(update.message.from_user.first_name.encode("utf-8").decode("utf-8")) + ': ' + update.message.text
-        print(message)
 
         id = id[1:]
         if id == 'share':
             with sql.connect("messages.db") as con:
                 query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(update.message.from_user.id) + ";"
-                print("EXECUTED QUERY:")
-                print(query)
 
                 cur = con.cursor()
                 cur.execute(query)
@@ -143,8 +117,6 @@ def individualreq(bot, update, args):
                     bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start')
                 else:
                     query = "SELECT message_id, from_user, text_sent FROM messages"
-                    print("EXECUTED QUERY:")
-                    print(query)
 
                     cur = con.cursor()
                     cur.execute(query)
@@ -156,8 +128,6 @@ def individualreq(bot, update, args):
                         i = random.randint(0,len(res)-1)
 
                         query = "SELECT message_id, user_id FROM history WHERE message_id = " + str(res[i][0]) + " AND user_id = '" + str(res[i][1]) + "';"
-                        print("EXECUTED QUERY:")  
-                        print(query)
 
                         cur.execute(query)
                         res2 = cur.fetchall()
@@ -168,16 +138,12 @@ def individualreq(bot, update, args):
                             res.pop(i)
                     if len(res)!=0:
                         query = "SELECT user_name FROM users WHERE users.user_id = '" + str(res[i][1]) + "';"
-                        print("EXECUTED QUERY:")  
-                        print(query)
 
                         cur.execute(query)
                         res2 = cur.fetchone()
 
                         query = "INSERT INTO history (user_id, message_id) VALUES('" + str(update.message.from_user.id) + "', " 
                         query += str(res[i][0]) + ");"
-                        print("EXECUTED QUERY:")  
-                        print(query)
 
                         cur.execute(query)
 
