@@ -1,18 +1,23 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 
-# v 0.0.1
+# v 0.0.3
 
 import random
 import sqlite3 as sql
 import datetime
 import sys
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram import KeyboardButton, ReplyKeyboardMarkup
 
 token = str(sys.argv[1])
 
 updater = Updater(token=token) 
 dispatcher = updater.dispatcher
+
+kb = [[KeyboardButton('/help')],
+    [KeyboardButton('/share')]]
+kb_markup = ReplyKeyboardMarkup(kb, resize_keyboard=True)
 
 messages = []
 
@@ -22,7 +27,7 @@ def startCommand(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=response)
         bot.send_message(chat_id=update.message.chat_id, text='Вы можете поделиться новостями или интересными идеями. Я и мои собеседники будут рады от вас это услышать!')
         bot.send_message(chat_id=update.message.chat_id, text='Но не вводите личную информацию...')
-        bot.send_message(chat_id=update.message.chat_id, text='Для помощи, введите /help')
+        bot.send_message(chat_id=update.message.chat_id, text='Для помощи, введите /help', reply_markup=kb_markup)
 
         if not update.message.from_user.is_bot:
             query = "SELECT user_id FROM users WHERE user_id = '" + str(update.message.from_user.id) + "';"
@@ -55,20 +60,20 @@ def textMessage(bot, update):
             res = cur.fetchall()
 
             if len(res) == 0:
-                bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start')
+                bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start', reply_markup=kb_markup)
             elif abs(int(res[0][1][3:5]) - int(datetime.datetime.now().strftime("%M"))) > 0:
                 query = "UPDATE users SET last_active = '" + datetime.datetime.now().strftime("%H:%M:%S") + "' WHERE user_id = " + str(update.message.from_user.id) + ";"
                 cur.execute(query)
 
                 allow = True
             else:
-                bot.send_message(chat_id=update.message.chat_id, text='Простите, я не успеваю обработать.. Подождите минуту')
+                bot.send_message(chat_id=update.message.chat_id, text='Простите, я не успеваю обработать.. Подождите минуту', reply_markup=kb_markup)
             con.commit()
 
         if allow:
             response = update.message.from_user.first_name + u', я получил Ваше сообщение: "' + update.message.text + u'". Спасибо за то что поделились этим!'
             bot.send_message(chat_id=update.message.chat_id, text=response)
-            bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.')
+            bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.', reply_markup=kb_markup)
             
             query = "INSERT INTO messages (from_user, date_sent, time_sent, text_sent) VALUES('" 
             query += str(update.message.from_user.id) 
@@ -114,7 +119,7 @@ def individualreq(bot, update, args):
                 
 
                 if len(res) == 0:
-                    bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start')
+                    bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start', reply_markup=kb_markup)
                 else:
                     query = "SELECT message_id, from_user, text_sent FROM messages"
 
@@ -154,7 +159,7 @@ def individualreq(bot, update, args):
                     else:
                         response = "Простите, вы уже все посмотрели. Можете теперь сами мне написать, мы прочитаем!"
                         
-                    bot.send_message(chat_id=update.message.chat_id, text=response)
+                    bot.send_message(chat_id=update.message.chat_id, text=response, reply_markup=kb_markup)
                 con.commit()
                 
         elif id == 'help':
@@ -163,7 +168,7 @@ def individualreq(bot, update, args):
             response = 'Если мой собеседник присылает мне команду /share, я отвечаю ему случайно выбранным сообщением, которое хранится в той базе данных'
             bot.send_message(chat_id=update.message.chat_id, text=response)
             response = 'Пишите мне то, что хотите донести случайным людям. Я сделаю это за вас. Удачи!'
-            bot.send_message(chat_id=update.message.chat_id, text=response)
+            bot.send_message(chat_id=update.message.chat_id, text=response, reply_markup=kb_markup)
     except Exception as e:   
         print(e)
 

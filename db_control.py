@@ -1,7 +1,7 @@
 #!/usr/bin/python -u
 # -*- coding: utf-8 -*-
 
-# v 0.0.2
+# v 0.0.3
 
 import sqlite3 as sql
 import datetime
