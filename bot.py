@@ -66,7 +66,7 @@ def textMessage(bot, update):
             con.commit()
 
         if allow:
-            response = update.message.from_user.first_name + ', я получил Ваше сообщение: "' + update.message.text + '". Спасибо за то что поделились этим!'
+            response = update.message.from_user.first_name + u', я получил Ваше сообщение: "' + update.message.text + u'". Спасибо за то что поделились этим!'
             bot.send_message(chat_id=update.message.chat_id, text=response)
             bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.')
             
@@ -147,7 +147,7 @@ def individualreq(bot, update, args):
 
                         cur.execute(query)
 
-                        response = str(res2[0]) + ": " + res[i][2]
+                        response = str(res2[0]) + u": " + res[i][2]
                     else:
                         response = "Простите, вы уже все посмотрели. Можете теперь сами мне написать, мы прочитаем!"
                         
