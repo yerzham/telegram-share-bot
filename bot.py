@@ -4,103 +4,57 @@
 # v 0.0.3
 
 import random
-import sqlite3 as sql
 import datetime
 import sys
+from libs import respond
+from libs import sql_query as sql
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from telegram import KeyboardButton, ReplyKeyboardMarkup
 
 token = str(sys.argv[1])
+respond.token = token
 
 updater = Updater(token=token) 
 dispatcher = updater.dispatcher
 
-kb = [[KeyboardButton('/help')],
-    [KeyboardButton('/share')]]
-kb_markup = ReplyKeyboardMarkup(kb, resize_keyboard=True)
-
-messages = []
+kb_def = [[KeyboardButton('/share')], [KeyboardButton('/settings')]]
+kb_reg = [[KeyboardButton('/start')]]
+kb_markup = ReplyKeyboardMarkup(kb_def, resize_keyboard=True)
+kb_markup_reg = ReplyKeyboardMarkup(kb_reg, resize_keyboard=True)
 
 def startCommand(bot, update):
     try:
-        response = u'Привет, ' + update.message.from_user.first_name + u'. Я бот, который будет пересылать все ваши отправленные мне сообщения случайным людям, которые напишут мне команду /share.'
-        bot.send_message(chat_id=update.message.chat_id, text=response)
-        bot.send_message(chat_id=update.message.chat_id, text='Вы можете поделиться новостями или интересными идеями. Я и мои собеседники будут рады от вас это услышать!')
-        bot.send_message(chat_id=update.message.chat_id, text='Но не вводите личную информацию...')
-        bot.send_message(chat_id=update.message.chat_id, text='Для помощи, введите /help', reply_markup=kb_markup)
+        respond.welcome(bot, update, kb_markup)
 
         if not update.message.from_user.is_bot:
-            query = "SELECT user_id FROM users WHERE user_id = '" + str(update.message.from_user.id) + "';"
-            
-            with sql.connect("messages.db") as con:
-                cur = con.cursor()
-                cur.execute(query)
-                res = cur.fetchall()
-                if len(res) == 0:
-                    query = u"INSERT INTO users (user_id, user_name, last_active) VALUES('" 
-                    query += str(update.message.from_user.id)
-                    query += u"', '" 
-                    query += update.message.from_user.first_name
-                    query += u"', '" + datetime.datetime.now().strftime("%H:%M:%S") + "');"
-
-                    cur.execute(query)
-                con.commit()
+            res = sql.user(update.message.from_user.id)
+            if len(res) == 0:
+                sql.recordUser(update.message.from_user.id, datetime.datetime.now().strftime("%H:%M:%S"))
     except Exception as e:   
         print(e)
 
 def textMessage(bot, update):
     try:
         allow = False
+        res = sql.user(str(update.message.from_user.id))
 
-        with sql.connect("messages.db") as con:
-            query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(update.message.from_user.id) + ";"
-
-            cur = con.cursor()
-            cur.execute(query)
-            res = cur.fetchall()
-
-            if len(res) == 0:
-                bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start', reply_markup=kb_markup)
-            elif abs(int(res[0][1][3:5]) - int(datetime.datetime.now().strftime("%M"))) > 0:
-                query = "UPDATE users SET last_active = '" + datetime.datetime.now().strftime("%H:%M:%S") + "' WHERE user_id = " + str(update.message.from_user.id) + ";"
-                cur.execute(query)
-
-                allow = True
-            else:
-                bot.send_message(chat_id=update.message.chat_id, text='Простите, я не успеваю обработать.. Подождите минуту', reply_markup=kb_markup)
-            con.commit()
+        if len(res) == 0:
+            respond.register(bot, update, kb_markup_reg)
+        elif abs(int(res[0][1][3:5]) - int(datetime.datetime.now().strftime("%M"))) > 0:
+            sql.recordActivity(update.message.from_user.id, datetime.datetime.now().strftime("%H:%M:%S"))
+            allow = True
+        else:
+            respond.wait(bot, update, kb_markup)
 
         if allow:
-            response = update.message.from_user.first_name + u', я получил Ваше сообщение: "' + update.message.text + u'". Спасибо за то что поделились этим!'
-            bot.send_message(chat_id=update.message.chat_id, text=response)
-            bot.send_message(chat_id=update.message.chat_id, text='Помните, ваши данные могут быть видны другим моим собеседникам. Не вводите личную информацию.', reply_markup=kb_markup)
+            respond.received(bot, update, kb_markup, update.message.text)
+            sql.recordMessage(update.message.from_user.id,
+                              datetime.datetime.now().strftime("%Y-%m-%d"),
+                              datetime.datetime.now().strftime("%H:%M:%S"),
+                              update.message.text)
+            res = sql.messageID(str(update.message.from_user.id), update.message.text)
+            sql.recordHistory(update.message.from_user.id, res[0])
             
-            query = "INSERT INTO messages (from_user, date_sent, time_sent, text_sent) VALUES('" 
-            query += str(update.message.from_user.id) 
-            query += "', '" 
-            query += datetime.datetime.now().strftime("%Y-%m-%d")
-            query += "', '" 
-            query += datetime.datetime.now().strftime("%H:%M:%S") 
-            query += "', '" 
-            query += update.message.text + "');"
-
-                
-            with sql.connect("messages.db") as con:
-                cur = con.cursor()
-                cur.execute(query)
-
-                query = "SELECT message_id FROM messages WHERE messages.text_sent = '" + update.message.text 
-                query += "' AND messages.from_user = '" + str(update.message.from_user.id) + "';"
-
-                cur.execute(query)
-                res = cur.fetchone()
-
-                query = "INSERT INTO history (user_id, message_id) VALUES('" + str(update.message.from_user.id) + "', " 
-                query += str(res[0]) + ");"
-
-                cur.execute(query)
-
-                con.commit()
     except Exception as e:   
         print(e)
 
@@ -110,65 +64,29 @@ def individualreq(bot, update, args):
 
         id = id[1:]
         if id == 'share':
-            with sql.connect("messages.db") as con:
-                query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(update.message.from_user.id) + ";"
-
-                cur = con.cursor()
-                cur.execute(query)
-                res = cur.fetchall()
+            res = sql.activity(update.message.from_user.id)
                 
+            if len(res) == 0:
+                respond.register(bot, update, kb_markup_reg)
+            else:
+                res = sql.messages()
+                found = False
 
-                if len(res) == 0:
-                    bot.send_message(chat_id=update.message.chat_id, text='Я не могу вам ответить :(. Зарегистрируйтесь в моей системе, просто введите /start', reply_markup=kb_markup)
-                else:
-                    query = "SELECT message_id, from_user, text_sent FROM messages"
-
-                    cur = con.cursor()
-                    cur.execute(query)
-                    res = cur.fetchall()
-                    print(res)
-
-                    found = False
-
-                    while (not found) and (len(res)!=0):
-                        i = random.randint(0,len(res)-1)
-                        print(str(res[i][0]), str(res[i][1]))
-
-                        query = "SELECT message_id, user_id FROM history WHERE message_id = " + str(res[i][0]) + " AND user_id = '" + str(update.message.from_user.id)  + "';"
-
-                        cur.execute(query)
-                        res2 = cur.fetchall()
-                        print(res2)
-
-                        if len(res2) == 0:
-                            found = True
-                        else:
-                            res.pop(i)
-                    if len(res)!=0:
-                        query = "SELECT user_name FROM users WHERE users.user_id = '" + str(res[i][1]) + "';"
-
-                        cur.execute(query)
-                        res2 = cur.fetchone()
-
-                        query = "INSERT INTO history (user_id, message_id) VALUES('" + str(update.message.from_user.id) + "', " 
-                        query += str(res[i][0]) + ");"
-
-                        cur.execute(query)
-
-                        response = u"" + res2[0] + u": " + res[i][2]
+                while (not found) and (len(res)!=0):
+                    i = random.randint(0,len(res)-1)
+                    if not sql.in_history(update.message.from_user.id, res[i][0]):
+                        found = True
                     else:
-                        response = "Простите, вы уже все посмотрели. Можете теперь сами мне написать, мы прочитаем!"
-                        
-                    bot.send_message(chat_id=update.message.chat_id, text=response, reply_markup=kb_markup)
-                con.commit()
-                
+                        res.pop(i)
+                if len(res)!=0:
+                    sql.recordHistory(update.message.from_user.id, res[i][0])
+                    response = u"[O]: " + res[i][2]
+                else:
+                    response = u"Простите, вы уже все посмотрели. Можете теперь сами мне написать, мы прочитаем!"
+                bot.send_message(chat_id=update.message.chat_id, text=response, reply_markup=kb_markup)    
+        
         elif id == 'help':
-            response = 'Очень рад что вы заинтересованы. Я бот, который на 24 часа сохраняет все отправленные мне сообщения в базе данных'
-            bot.send_message(chat_id=update.message.chat_id, text=response)
-            response = 'Если мой собеседник присылает мне команду /share, я отвечаю ему случайно выбранным сообщением, которое хранится в той базе данных'
-            bot.send_message(chat_id=update.message.chat_id, text=response)
-            response = 'Пишите мне то, что хотите донести случайным людям. Я сделаю это за вас. Удачи!'
-            bot.send_message(chat_id=update.message.chat_id, text=response, reply_markup=kb_markup)
+            respond.help(bot, update, kb_markup)
     except Exception as e:   
         print(e)
 

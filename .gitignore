@@ -1,3 +1,4 @@
 *.db
 query.sql
 /.vscode
+__pycache__
