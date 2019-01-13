@@ -1,12 +1,15 @@
 import sqlite3 as sql
 
-def recordUser(ID, time):
+def recordUser(ID, name, time, chat_id, browsed):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = u"INSERT INTO users (user_id, user_name, last_active) VALUES('" 
+            query = u"INSERT INTO users (user_id, user_name, last_active, chat_id, browsed) VALUES('" 
             query += str(ID)
-            query += u"', '" + time + "');"
+            query += u"', '" + str(name)
+            query += u"', '" + time
+            query += u"', '" + str(chat_id)
+            query += u"', " + str(browsed) + ");"
             cur.execute(query)
             print("EXE: ", query)
             con.commit()
@@ -17,7 +20,7 @@ def user(ID):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(ID) + ";"
+            query = "SELECT last_active FROM users WHERE user_id = '" + str(ID) + "';"
             cur.execute(query)
             print("EXE: ", query)
             res = cur.fetchall()
@@ -30,7 +33,7 @@ def recordActivity(ID, time):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = "UPDATE users SET last_active = '" + time + "' WHERE user_id = " + str(ID) + ";"
+            query = "UPDATE users SET last_active = '" + time + "' WHERE user_id = '" + str(ID) + "';"
             cur.execute(query)
             con.commit()
             print("EXE: ", query)
@@ -41,14 +44,18 @@ def recordMessage(ID, date, time, message):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = "INSERT INTO messages (from_user, date_sent, time_sent, text_sent) VALUES('" 
+            query = "INSERT INTO messages (from_user, date_sent, time_sent, text_sent, views, reputation) VALUES('" 
             query += str(ID) 
             query += "', '" 
             query += date
             query += "', '" 
             query += time
             query += "', '" 
-            query += message + "');"
+            query += message
+            query += "', " 
+            query += "0"
+            query += ", " 
+            query += "0" + ");"
             cur.execute(query)
             print("EXE: ", query)
             con.commit()
@@ -60,7 +67,7 @@ def messageID(ID, text):
         with sql.connect("messages.db") as con:
             cur = con.cursor()
             query = "SELECT message_id FROM messages WHERE messages.text_sent = '" + text
-            query += "' AND messages.from_user = '" + ID + "';"
+            query += "' AND messages.from_user = '" + str(ID) + "';"
             cur.execute(query)
             print("EXE: ", query)
             res = cur.fetchone()
@@ -69,7 +76,7 @@ def messageID(ID, text):
     except Exception as e:   
         print(e)
 
-def recordHistory(ID, message_id):
+def recordHistory(ID, message_id, views):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
@@ -78,7 +85,9 @@ def recordHistory(ID, message_id):
             query += str(message_id) + ");"
             cur.execute(query)
             print("EXE: ", query)
-            res = cur.fetchall()
+            query = "UPDATE messages SET views = " + str(views) + " WHERE message_id = " + str(message_id) + ";"
+            cur.execute(query)
+            print("EXE: ", query)
             con.commit()
     except Exception as e:   
         print(e)
@@ -87,7 +96,7 @@ def activity(ID):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = "SELECT user_id, last_active FROM users WHERE user_id = " + str(ID) + ";"
+            query = "SELECT user_id, last_active FROM users WHERE user_id = '" + str(ID) + "';"
             cur.execute(query)
             print("EXE: ", query)
             res = cur.fetchall()
@@ -100,7 +109,7 @@ def messages():
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = "SELECT message_id, from_user, text_sent FROM messages"
+            query = "SELECT message_id, from_user, text_sent, views FROM messages"
             cur.execute(query)
             print("EXE: ", query)
             res = cur.fetchall()
@@ -133,6 +142,65 @@ def username(ID):
             cur.execute(query)
             print("EXE: ", query)
             res = cur.fetchone()
+            con.commit()
+            return res
+    except Exception as e:   
+        print(e)
+
+def recordChatID(ID, chat_id):
+    try:
+        with sql.connect("messages.db") as con:
+            cur = con.cursor()
+            query = "UPDATE users SET chat_id = '" + str(chat_id) + "' WHERE user_id = '" + str(ID) + "';"
+            cur.execute(query)
+            print("EXE: ", query)
+            con.commit()
+    except Exception as e:   
+        print(e)
+
+def recordBrowsed(ID):
+    try:
+        with sql.connect("messages.db") as con:
+            cur = con.cursor()
+            query = "UPDATE users SET browsed = 1 WHERE user_id = '" + str(ID) + "';"
+            cur.execute(query)
+            print("EXE: ", query)
+            con.commit()
+    except Exception as e:   
+        print(e)
+
+def browsed():
+    try:
+        with sql.connect("messages.db") as con:
+            cur = con.cursor()
+            query = "SELECT chat_id, user_id FROM users WHERE users.browsed = 1;"
+            cur.execute(query)
+            print("EXE: ", query)
+            res = cur.fetchall()
+            con.commit()
+            return res
+    except Exception as e:   
+        print(e)
+
+def resetBrowsed():
+    try:
+        with sql.connect("messages.db") as con:
+            cur = con.cursor()
+            query = "UPDATE users SET browsed = 0;"
+            cur.execute(query)
+            print("EXE: ", query)
+            con.commit()
+    except Exception as e:   
+        print(e)
+
+def stats(ID):
+    try:
+        with sql.connect("messages.db") as con:
+            cur = con.cursor()
+            query = "SELECT text_sent, views FROM messages WHERE messages.from_user = '" + str(ID) + "';"
+            cur.execute(query)
+            print("EXE: ", query)
+            res = cur.fetchall()
             con.commit()
             return res
     except Exception as e:   

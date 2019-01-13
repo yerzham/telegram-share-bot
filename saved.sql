@@ -1,7 +1,9 @@
 CREATE TABLE users(
     user_id VARCHAR PRIMARY KEY,
     user_name VARCHAR,
-    last_active TIME
+    last_active TIME,
+    chat_id VARCHAR,
+    browsed INTEGER
 );
 
 CREATE TABLE messages(
@@ -9,7 +11,9 @@ CREATE TABLE messages(
     from_user VARCHAR,
     date_sent DATE,
     time_sent TIME,
-    text_sent VARCHAR
+    text_sent VARCHAR,
+    views INTEGER,
+    reputation INTEGER
 );
 
 CREATE TABLE history(
