@@ -182,11 +182,11 @@ def browsed():
     except Exception as e:   
         print(e)
 
-def resetBrowsed():
+def resetBrowsedExcept(ID):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = "UPDATE users SET browsed = 0;"
+            query = "UPDATE users SET browsed = 0 WHERE user_id != " + str(ID) + ";"
             cur.execute(query)
             print("EXE: ", query)
             con.commit()

@@ -63,7 +63,7 @@ def textMessage(bot, update):
             for data in res:
                 if data[1] != str(update.message.from_user.id): #data[1] - user_id
                     respond.notify(bot, data[0], kb_markup)     #data[0] - chat_id
-            sql.resetBrowsed()
+            sql.resetBrowsedExcept(update.message.from_user.id)
     except Exception as e:   
         print(e)
 
