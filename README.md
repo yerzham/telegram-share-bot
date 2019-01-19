@@ -1,4 +1,4 @@
-# Share_Bot
+# Telegram Share Bot
 #### *Script to run a bot that shares received messages with random people*
 
 ### Dependencies
