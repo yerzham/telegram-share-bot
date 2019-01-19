@@ -15,3 +15,11 @@ Works only with python 3 <br />
 ### Run the scripts
 - `python3 bot.py {YOUR BOT TOKEN}` - will run the main script for user interaction and data managment
 - `python3 db_control.py` - will run the script to delete messages received 24h ago
+<br />
+<br />
+<br />
+
+TODO:
+- [ ] Voting on a post
+- [ ] Image support
+- [ ] Audio support
