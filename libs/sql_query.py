@@ -9,7 +9,7 @@ def recordUser(ID, name, time, chat_id, browsed):
             cur = con.cursor()
             query = u"INSERT INTO users (user_id, user_name, last_active, chat_id, browsed) VALUES('" 
             query += str(ID)
-            query += u"', '" + str(name)
+            query += u"', '" + name
             query += u"', '" + time
             query += u"', '" + str(chat_id)
             query += u"', " + str(browsed) + ");"
@@ -17,7 +17,7 @@ def recordUser(ID, name, time, chat_id, browsed):
             con.commit()
     except Exception as e:   
         print(e)
-    print("EXE: ", query)
+    print("EXE: ", "INSERT INTO users (user_id, user_name, last_active, chat_id, browsed) VALUES('")
 
 def user(ID):
     try:
@@ -63,7 +63,7 @@ def recordMessage(ID, date, time, message):
             con.commit()
     except Exception as e:   
         print(e)
-    print("EXE: ", query)
+    print("EXE: ", "INSERT INTO messages (from_user, date_sent, time_sent, text_sent, views, reputation) VALUES('" )
 
 def messageID(ID, text):
     try:
@@ -76,7 +76,7 @@ def messageID(ID, text):
             con.commit()
     except Exception as e:   
         print(e)
-    print("EXE: ", query)
+    print("EXE: ", "SELECT message_id FROM messages WHERE messages.text_sent = '")
     return res
 
 def recordHistory(ID, message_id, views):
@@ -196,7 +196,7 @@ def resetBrowsedExcept(ID):
     try:
         with sql.connect("messages.db") as con:
             cur = con.cursor()
-            query = "UPDATE users SET browsed = 0 WHERE user_id != " + str(ID) + ";"
+            query = "UPDATE users SET browsed = 0 WHERE user_id != '" + str(ID) + "';"
             cur.execute(query)
             con.commit()
     except Exception as e:   
