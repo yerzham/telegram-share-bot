@@ -39,7 +39,7 @@ def startCommand(bot, update):
 def textMessage(bot, update):
     try:
         allow = False
-        res = sql.user(str(update.message.from_user.id))
+        res = sql.user(update.message.from_user.id)
 
         if len(res) == 0:
             respond.register(bot, update, kb_markup_reg)
